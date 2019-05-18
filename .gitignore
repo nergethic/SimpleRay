@@ -36,3 +36,6 @@
 *.vcxproj
 *.vcxproj.*
 /.vs
+/.vscode
+/.vscode/*
+.vscode
