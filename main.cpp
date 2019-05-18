@@ -7,32 +7,18 @@
 
 #include "math.h"
 #include "ray.h"
+#include "sphere.h"
+#include "hitableList.h"
 
-float hitSphere(V3 center, float radius, Ray& r) {
-	V3 oc = r.origin - center;
-	float a = dot(r.direction, r.direction);
-	float b = 2.0f * dot(oc, r.direction);
-	float c = dot(oc, oc) - radius*radius;
-	float discriminant = b*b - 4*a*c;
-	if (discriminant < 0) {
-		return -1.0f;
+V3 getColor(Ray& r, IHitable *world) {
+	HitRecord rec;
+	if (world->hit(r, 0.0f, FLT_MAX, rec)) {
+		return 0.5f*(rec.normal+V3(1.0f));
 	} else {
-		return (-b - sqrt(discriminant)) / (2.0f*a);
+		V3 unitDirection = r.direction.get_normalized();
+		float t = 0.5f*(unitDirection.y + 1.0f);
+		return lerp(V3(0.2f, 0.8f, 1.0f), V3(0.8f, 0.7f, 1.0f), t);
 	}
-}
-
-V3 getColor(Ray& r) {
-	float t = hitSphere(V3(0.0f, 0.0f, -1.0f), 0.5f, r);
-	if (t > 0.0f) {
-		// sphere normal is (hitpoint - sphere center)
-		V3 normal = r.point_at_t(t) - V3(0.0f, 0.0f, -1.0f);
-		normal.normalize();
-		return 0.5f*(V3(normal.x, normal.y, normal.z) + V3(1.0f));
-	}
-
-	V3 unitDirection = r.direction.get_normalized();
-	t = 0.5f*(unitDirection.y + 1.0f);
-	return lerp(V3(0.2f, 0.8f, 1.0f), V3(0.8f, 0.7f, 1.0f), t);
 }
 
 int main(int argCount, char **args) {
@@ -49,6 +35,11 @@ int main(int argCount, char **args) {
 	V3 horizontal(4.0f, 0.0f, 0.0f);
 	V3 vertical(0.0f, 2.0f, 0.0f);
 	V3 origin(0.0f, 0.0f, 0.0f);
+
+	IHitable *list[2];
+	list[0] = new Sphere(V3(0.0f, 0.0f, -1.0f), 0.5f);
+	list[1] = new Sphere(V3(0.0f, -100.5f, -1.0f), 100.0f);
+	IHitable *world = new HitableList(list, 2);
 	unsigned char* currentTexel = data;
 	auto cc = sizeof(*currentTexel);
 	for (int y = height-1; y >= 0; --y) {
@@ -58,7 +49,7 @@ int main(int argCount, char **args) {
 			float u = float(x)/float(width);
 			V3 rayDir = lowerLeftCorner + u*horizontal + v*vertical;
 			Ray ray(origin, rayDir);
-			V3 color = getColor(ray);
+			V3 color = getColor(ray, world);
 			*currentTexel = int(color.r*255.99f);
 			currentTexel++;
 			*currentTexel = int(color.g*255.99f);

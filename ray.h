@@ -11,7 +11,7 @@ struct Ray {
 		this->direction = direction;
 	}
 
-	V3 point_at_t(float t) {
+	V3 pointAtParameter(float t) {
 		return origin + t*direction;
 	}
 };
