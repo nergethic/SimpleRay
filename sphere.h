@@ -2,11 +2,14 @@
 
 #include "hitable.h"
 
+struct IMaterial;
+
 struct Sphere: IHitable {
 	V3 center;
 	float radius;
+	IMaterial* material;
 
-	Sphere(V3 cen, float r) : center(cen), radius(r) {};
+	Sphere(V3 cen, float r, IMaterial* mat) : center(cen), radius(r), material(mat) {};
 	virtual bool hit(Ray& r, float tMin, float tMax, HitRecord& rec) const;
 };
 
@@ -25,6 +28,7 @@ bool Sphere::hit(Ray& r, float tMin, float tMax, HitRecord& rec) const {
 			rec.t = temp;
 			rec.p = r.pointAtParameter(rec.t);
 			rec.normal = (rec.p - center) / radius;
+			rec.material = material;
 			return true;
 		}
 
@@ -33,6 +37,7 @@ bool Sphere::hit(Ray& r, float tMin, float tMax, HitRecord& rec) const {
 			rec.t = temp;
 			rec.p = r.pointAtParameter(rec.t);
 			rec.normal = (rec.p - center) / radius;
+			rec.material = material;
 			return true;
 		}
 	} 

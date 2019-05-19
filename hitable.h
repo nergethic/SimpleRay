@@ -2,10 +2,13 @@
 
 #include "ray.h"
 
+struct IMaterial;
+
 struct HitRecord {
 	float t;
 	V3 p;
 	V3 normal;
+	IMaterial *material;
 };
 
 struct IHitable {

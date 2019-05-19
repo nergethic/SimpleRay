@@ -40,7 +40,7 @@ public:
 		return sqrt(x*x + y*y + z*z);
 	}
 
-	inline float length_squared() {
+	inline float lengthSquared() {
 		return x*x + y*y + z*z;
 	}
 
@@ -51,7 +51,7 @@ public:
 		z *= k;
 	}
 
-	inline V3 get_normalized() {
+	inline V3 getNormalized() {
 		V3 v(x, y, z);
 		v.normalize();
 		return v;
@@ -86,6 +86,42 @@ inline V3 lerp(V3 a, V3 b, float t) {
 	return (1.0f-t)*a + t*b;
 }
 
-inline float map() {
-	// TODO
+inline float mapFrom01(float x, float min, float max) {
+	return((max-min)*x + min);
+}
+
+inline V3 mapFrom01(V3 x, float min, float max) {
+	return((max-min)*x + V3(min));
+}
+
+inline float mapTo01(float x, float min, float max) {
+	return((x+abs(min))/(max - min));
+}
+
+inline V3 mapTo01(V3 x, float min, float max) {
+	return((x+V3(abs(min)))/V3((max - min)));
+}
+
+inline float map(float x, float fromMin, float fromMax, float toMin, float toMax) {
+	return(toMin + (x-fromMin)*(toMax-toMin)/(fromMax-fromMin));
+}
+inline V3 map(V3 x, float fromMin, float fromMax, float toMin, float toMax) {
+	return(V3(toMin) + ((x-V3(fromMin))*V3((toMax-toMin)/(fromMax-fromMin))));
+}
+
+// range of generated number: [0-1)
+inline float getRandomNumber01() {
+	return (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.0001f;
+}
+
+V3 randomInUnitSphere() {
+	V3 p;
+	do {
+		p = mapFrom01(V3(getRandomNumber01(), getRandomNumber01(), getRandomNumber01()), -1.0f, 1.0f);
+	} while (p.lengthSquared() >= 1.0f);
+	return p;
+}
+
+V3 reflect(V3& v, V3& normal) {
+	return(v - 2.0f*dot(v, normal)*normal);
 }
