@@ -35,6 +35,7 @@ public:
 	}
 
 	inline float operator[](int i) { return e[i]; }
+	inline V3 operator-() { return V3(-x, -y, -z); }
 
 	inline float length() {
 		return sqrt(x*x + y*y + z*z);
@@ -74,9 +75,11 @@ inline float dot(V3 a, V3 b) {
 	return a.x*b.x + a.y*b.y + a.z*b.z;
 }
 
-//inline float cross(V3 a, V3 b) {
-//	return ;
-//}
+inline V3 cross(V3 a, V3 b) {
+	return V3((a.y*b.z - a.z*b.y),
+			(-(a.x*b.z - a.z*b.x)),
+			  (a.x*b.y - a.y*b.x));
+}
 
 inline float lerp(float a, float b, float t) {
 	return (1.0f-t)*a + t*b;
@@ -114,6 +117,10 @@ inline float getRandomNumber01() {
 	return (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) - 0.0001f;
 }
 
+inline V3 getRandomVector01() {
+	return V3(getRandomNumber01(), getRandomNumber01(), getRandomNumber01());
+}
+
 V3 randomInUnitSphere() {
 	V3 p;
 	do {
@@ -124,4 +131,22 @@ V3 randomInUnitSphere() {
 
 V3 reflect(V3& v, V3& normal) {
 	return(v - 2.0f*dot(v, normal)*normal);
+}
+
+bool refract(V3& v, V3& n, float niOverNt, V3& refractedRay) {
+	V3 uv = v.getNormalized();
+	float dt = dot(uv, n);
+	float discriminant = 1.0f - niOverNt*niOverNt*(1.0f-dt*dt);
+	if (discriminant > 0) {
+		refractedRay = niOverNt*(uv - n*dt) - n*sqrt(discriminant);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+float schlick(float cosine, float refractionIndex) {
+	float r0 = (1.0f-refractionIndex) / (1.0f+refractionIndex);
+	r0 = r0*r0;
+	return r0 + (1.0f-r0)*pow((1.0f-cosine), 5.0f);
 }

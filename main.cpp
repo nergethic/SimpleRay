@@ -6,6 +6,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#define _USE_MATH_DEFINES
 #include "math.h"
 #include "ray.h"
 #include "sphere.h"
@@ -34,6 +35,35 @@ V3 getColor(Ray& r, IHitable *world, int depth) {
 	}
 }
 
+IHitable *getRandomScene() {
+	int n = 500;
+	IHitable **list = new IHitable*[n+1];
+	list[0] = new Sphere(V3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(V3(0.5f, 0.5f, 0.5f)));
+	int i = 1;
+	for (int a = -11; a < 11; ++a) {
+		for (int b = -11; b < 11; ++b) {
+			float chooseMaterial = getRandomNumber01();
+			V3 center(a+0.9f*getRandomNumber01(), 0.2f, b+0.9f*getRandomNumber01());
+			float length = (center-V3(4.0f, 0.2f, 0.0f)).length();
+			if (length > 0.9f) {
+				if (chooseMaterial < 0.8) {
+					list[i++] = new Sphere(center, 0.2f, new Lambertian(getRandomVector01()*getRandomVector01()));
+				} else if (chooseMaterial < 0.95f) {
+					list[i++] = new Sphere(center, 0.2f, new Metal(0.5f*(getRandomVector01()+V3(1.0f)), 0.5f*getRandomNumber01()));
+				} else {
+					list[i++] = new Sphere(center, 0.2f, new Dielectric(1.5f));
+				}
+			} 
+		}
+	}
+
+	list[i++] = new Sphere(V3(0.0f, 1.0f, 0.0f), 1.0f, new Dielectric(1.5f));
+	list[i++] = new Sphere(V3(-4.0f, 1.0f, 0.0f), 1.0f, new Lambertian(V3(0.4f, 0.2f, 0.1f)));
+	list[i++] = new Sphere(V3(4.0f, 1.0f, 0.0f), 1.0f, new Metal(V3(0.7f, 0.6f, 0.5f), 0.0f));
+
+	return new HitableList(list, i);
+}
+
 int main(int argCount, char **args) {
 
 	srand(time(NULL));
@@ -47,15 +77,14 @@ int main(int argCount, char **args) {
 
 	int stride = width*colorChannels;
 
-	IHitable *objectList[4];
-	objectList[0] = new Sphere(V3(0.0f, 0.0f, -1.0f), 0.5f, new Lambertian(V3(0.8f, 0.3f, 0.3f)));
-	objectList[1] = new Sphere(V3(0.0f, -100.5f, -1.0f), 100.0f, new Lambertian(V3(0.8f, 0.8f, 0.0f)));
-	objectList[2] = new Sphere(V3(1.0f, 0.0f, -1.0f), 0.5f, new Metal(V3(0.8f, 0.6f, 0.2f), 1.0f));
-	objectList[3] = new Sphere(V3(-1.0f, 0.0f, -1.0f), 0.5f, new Metal(V3(0.8f, 0.8f, 0.8f), 0.3f));
-	IHitable *world = new HitableList(objectList, 4);
-	Camera camera;
+	IHitable *objectList[5];
+	float R = cos(M_PI/4.0f);
+	IHitable *world = getRandomScene();
+
+	Camera camera(V3(-2.0f, 2.0f, 1.0f), V3(0.0f, 0.0f, -1.0f), V3(0.0f, 1.0f, 0.0f), 90.0f, float(width)/float(height));
 	unsigned char* currentTexel = data;
 	auto cc = sizeof(*currentTexel);
+	printf("y lines done:\n");
 	for (int y = height-1; y >= 0; --y) {
 		for (int x = 0; x < width; ++x) {
 			V3 color(0.0f);
@@ -76,6 +105,7 @@ int main(int argCount, char **args) {
 			*currentTexel = int(color.b*255.99f);
 			currentTexel++;
 		}
+		printf("%d\n", height-y);
 	}
 
 	if (!stbi_write_png("render.png", width, height, colorChannels, data, 0)) {

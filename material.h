@@ -30,3 +30,39 @@ struct Metal : IMaterial {
 		return (dot(scatteredRay.direction, rec.normal) > 0.0f);
 	}
 };
+
+struct Dielectric : IMaterial {
+	float refractionIndex;
+	Dielectric(float ri) : refractionIndex(ri) {}
+	virtual bool scatter(Ray& rayIn, HitRecord& rec, V3& attenuation, Ray& scatteredRay) const {
+		attenuation = V3(1.0f);
+		V3 outwardNormal, refractedRay;
+		float niOverNt, reflectProb, cosine;
+		V3 reflectedRay = reflect(rayIn.direction, rec.normal);
+
+		if (dot(rayIn.direction, rec.normal) > 0.0f) {
+			outwardNormal = -rec.normal;
+			niOverNt = refractionIndex;
+			cosine = refractionIndex*dot(rayIn.direction, rec.normal) / rayIn.direction.length();
+		} else {
+			outwardNormal = rec.normal;
+			niOverNt = 1.0f / refractionIndex;
+			cosine = -dot(rayIn.direction, rec.normal) / rayIn.direction.length();
+		}
+
+		if (refract(rayIn.direction, outwardNormal, niOverNt, refractedRay)) {
+			reflectProb = schlick(cosine,refractionIndex);
+			// scatteredRay = Ray(rec.p, refractedRay);
+		} else {
+			scatteredRay = Ray(rec.p, reflectedRay);
+			reflectProb = 1.0f;
+		}
+
+		if (getRandomNumber01() < reflectProb) {
+			scatteredRay = Ray(rec.p, reflectedRay);
+		} else {
+			scatteredRay = Ray(rec.p, refractedRay);
+		}
+		return true;
+	}
+};

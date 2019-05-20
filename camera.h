@@ -8,11 +8,21 @@ struct Camera {
 	V3 vertical;
 	V3 origin;
 
-	Camera() {
-		lowerLeftCorner = V3(-2.0f, -1.0f, -1.0f);
-		horizontal = V3(4.0f, 0.0f, 0.0f);
-		vertical = V3(0.0f, 2.0f, 0.0f);
-		origin = V3(0.0f, 0.0f, 0.0f);
+	// verticalFOV is top to bottom in degrees
+	Camera(V3 lookFrom, V3 lookAt, V3 up, float verticalFOV, float aspectRatio) {
+		float theta = verticalFOV*M_PI/180.0f; 
+		float halfHeight = tan(theta/2.0f);
+		float halfWidth = aspectRatio*halfHeight;
+		origin = lookFrom;
+		V3 w = lookFrom-lookAt;
+		w.normalize();
+		V3 u = cross(up, w);
+		u.normalize();
+		V3 v = cross(w, u);
+		lowerLeftCorner = V3(-halfWidth, -halfHeight, -1.0f);
+		lowerLeftCorner = origin - halfWidth*u - halfHeight*v - w;
+		horizontal = 2.0f*halfWidth*u;
+		vertical = 2.0f*halfHeight*v;
 	}
 
 	Ray getRay(float u, float v) {
