@@ -40,8 +40,8 @@ IHitable *getRandomScene() {
 	IHitable **list = new IHitable*[n+1];
 	list[0] = new Sphere(V3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(V3(0.5f, 0.5f, 0.5f)));
 	int i = 1;
-	for (int a = -11; a < 11; ++a) {
-		for (int b = -11; b < 11; ++b) {
+	for (int a = -3; a < 3; ++a) {
+		for (int b = -3; b < 3; ++b) {
 			float chooseMaterial = getRandomNumber01();
 			V3 center(a+0.9f*getRandomNumber01(), 0.2f, b+0.9f*getRandomNumber01());
 			float length = (center-V3(4.0f, 0.2f, 0.0f)).length();
@@ -80,8 +80,12 @@ int main(int argCount, char **args) {
 	IHitable *objectList[5];
 	float R = cos(M_PI/4.0f);
 	IHitable *world = getRandomScene();
-
-	Camera camera(V3(-2.0f, 2.0f, 1.0f), V3(0.0f, 0.0f, -1.0f), V3(0.0f, 1.0f, 0.0f), 90.0f, float(width)/float(height));
+	V3 lookFrom(13.0f, 2.0f, 3.0f);
+	V3 lookAt(0.0f, 0.0f, 0.0f);
+	V3 up(0.0f, 1.0f, 0.0f);
+	float distToFocus = 10.0f;
+	float aperture = 0.1f;
+	Camera camera(lookFrom, lookAt, up, 20.0f, float(width)/float(height), aperture, distToFocus);
 	unsigned char* currentTexel = data;
 	auto cc = sizeof(*currentTexel);
 	printf("y lines done:\n");

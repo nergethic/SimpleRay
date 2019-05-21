@@ -129,6 +129,14 @@ V3 randomInUnitSphere() {
 	return p;
 }
 
+V3 randomInUnitDisk() {
+	V3 p;
+	do {
+		p = 2.0f*V3(getRandomNumber01(), getRandomNumber01(), 0.0f) - V3(1.0f, 1.0f, 0.0f);
+	} while (dot(p, p) >= 1.0f);
+	return p;
+}
+
 V3 reflect(V3& v, V3& normal) {
 	return(v - 2.0f*dot(v, normal)*normal);
 }
